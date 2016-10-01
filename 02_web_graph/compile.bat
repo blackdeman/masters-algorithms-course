@@ -1,0 +1,1 @@
+nvcc -arch=sm_20 blocked-fw-cuda.cu -o blocked-fw-cuda
