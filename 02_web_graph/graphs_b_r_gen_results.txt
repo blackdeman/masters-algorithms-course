@@ -1,0 +1,63 @@
+Test output_4096_12 
+Diameter : 4
+Average distance : 2.72949
+Connected : 1
+Connectivity components count : 1
+Max component size : 4096
+Average component size : 4096.00000
+Test output_4096_14 
+Diameter : 4
+Average distance : 2.65775
+Connected : 1
+Connectivity components count : 1
+Max component size : 4096
+Average component size : 4096.00000
+Test output_4096_16 
+Diameter : 4
+Average distance : 2.59172
+Connected : 1
+Connectivity components count : 1
+Max component size : 4096
+Average component size : 4096.00000
+Test output_4608_12 
+Diameter : 4
+Average distance : 2.75394
+Connected : 1
+Connectivity components count : 1
+Max component size : 4608
+Average component size : 4608.00000
+Test output_4608_14 
+Diameter : 4
+Average distance : 2.68481
+Connected : 1
+Connectivity components count : 1
+Max component size : 4608
+Average component size : 4608.00000
+Test output_4608_16 
+Diameter : 4
+Average distance : 2.61855
+Connected : 1
+Connectivity components count : 1
+Max component size : 4608
+Average component size : 4608.00000
+Test output_5120_12 
+Diameter : 4
+Average distance : 2.77477
+Connected : 1
+Connectivity components count : 1
+Max component size : 5120
+Average component size : 5120.00000
+Test output_5120_14 
+Diameter : 4
+Average distance : 2.70555
+Connected : 1
+Connectivity components count : 1
+Max component size : 5120
+Average component size : 5120.00000
+Test output_5120_16 
+Diameter : 4
+Average distance : 2.64434
+Connected : 1
+Connectivity components count : 1
+Max component size : 5120
+Average component size : 5120.00000
