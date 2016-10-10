@@ -21,10 +21,14 @@ namespace {
 
 	void MultSimpleAnalyzed(Cache& cache, const float* __restrict a, const float* __restrict b, float* __restrict c, int n)
     {
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
+        for (int i = 0; i < cache.read(&n); ++i) {
+			for (int j = 0; j < cache.read(&n); ++j) {
+				cache.touch(c);
                 cache.write(&c[i * n + j], 0.f);
-                for (int k = 0; k < n; ++k) {
+				for (int k = 0; k < cache.read(&n); ++k) {
+					cache.touch(a);
+					cache.touch(b);
+					cache.touch(c);
 					cache.write(&c[i * n + j], cache.read(&c[i * n + j]) + cache.read(&a[i * n + k]) * cache.read(&b[k * n + j]));
                 }
             }
@@ -57,12 +61,15 @@ namespace {
 
 int main(int argc, char* argv[])
 {
-	const int n = 1024;//atoi(argv[1]);
+	const int n = 129;//atoi(argv[1]);
     std::cerr << "n = " << n << std::endl;
 
-	const size_t cache_size = 8 * 1024;//3145728;
-	const size_t cache_ways_count = 4;//12;
-	const size_t cache_line_size = 64;//64;
+	int inputs[3][3] = { { 32, 1, 4 }, { 8 * 1024, 4, 64 }, { 3145728, 12, 64} };
+	int input_to_use = 2;
+
+	const size_t cache_size = inputs[input_to_use][0];
+	const size_t cache_ways_count = inputs[input_to_use][1];
+	const size_t cache_line_size = inputs[input_to_use][2];
 
 	const bool debug = false;
     
@@ -82,7 +89,7 @@ int main(int argc, char* argv[])
 		MultSimpleAnalyzed(cache, a, b, c, n);
         const auto endTime = std::clock();
 
-        // std::cerr << "timeSimple: " << double(endTime - startTime) / CLOCKS_PER_SEC << '\n';
+        std::cerr << "timeSimple: " << double(endTime - startTime) / CLOCKS_PER_SEC << '\n';
 		
 		if (debug) {
 			PrintMatrix(a, n);
