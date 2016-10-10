@@ -32,7 +32,8 @@ public:
 		cache_lines_count(cache_lines_count)
 	{
 		lines.resize(cache_lines_count);
-		std::fill(lines.begin(), lines.end(), new CacheLine());
+		for (size_t i = 0; i < cache_lines_count; i++)
+			lines[i] = new CacheLine();
 	}
 
 	bool touch(size_t tag, TICK_TYPE touch_tick)
@@ -95,7 +96,8 @@ public:
 		cache_sets_count = cache_size / (cache_ways_count * cache_line_size);
 
 		sets.resize(cache_sets_count);
-		std::fill(sets.begin(), sets.end(), new CacheSet(cache_ways_count));
+		for (size_t i = 0; i < cache_sets_count; ++i)
+			sets[i] = new CacheSet(cache_ways_count);
 
 		offset_in_block_size = static_cast<size_t>(log2(cache_line_size));
 		index_size = static_cast<size_t>(log2(cache_sets_count));
@@ -107,30 +109,6 @@ public:
 
 		touch_tick = 0;
 		cache_hits = 0;
-		/*
-		float x = 10;
-		float* ptr = &x;
-
-		printf("%p\n", ptr);
-		printf("%d\n", (size_t)ptr);
-		
-		char* str = new char[9];// = "0x31c3";
-		sprintf_s(str, 9, "%p", ptr);
-		std::istringstream iss(str);
-		int i;
-		iss >> std::hex >> i;
-		if (!iss && !iss.eof()) throw "dammit!";
-		std::cout << '"' << str << "\": " << i << "(0x" << std::hex << i << ")\n";
-		std::bitset<32> bs = i;
-		std::cout << "Binary : " << bs.to_string<char, std::char_traits<char>, std::allocator<char> >() << std::endl;
-		
-		std::cout << block_for_ptr(ptr) << std::endl;
-		std::cout << index_for_ptr(ptr) << std::endl;
-		std::cout << tag_for_ptr(ptr) << std::endl;
-		printf("%d\n", tag_for_ptr(ptr));
-
-		printf("%d\n", (tag_for_ptr(ptr) << (offset_in_block_size + index_size)) + (index_for_ptr(ptr) << offset_in_block_size) + block_for_ptr(ptr));
-		*/
 	}
 
 	int read(const int* ptr)
@@ -163,9 +141,12 @@ public:
 
 		size_t index = index_for_ptr(ptr);
 		size_t tag = tag_for_ptr(ptr);
-
+		if (debug)
+			printf("Touch : %d, %d\n", index, tag);
 		if (sets[index]->touch(tag, touch_tick)) {
 			cache_hits++;
+			if (debug)
+				printf("Hit!\n");
 		}
 	}
 
@@ -188,7 +169,7 @@ public:
 		printf("Cache touches : %llu\n", touch_tick);
 		printf("Cache hits : %llu\n", cache_hits);
 		printf("Cache misses : %llu\n", touch_tick - cache_hits);
-		printf("Cache miss ratio : %.3f\n", (touch_tick - cache_hits) / (double) touch_tick);
+		printf("Cache miss ratio : %.5f\n", (touch_tick - cache_hits) / (double) touch_tick);
 	}
 
 private:

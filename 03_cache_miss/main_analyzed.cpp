@@ -21,14 +21,14 @@ namespace {
 
 	void MultSimpleAnalyzed(Cache& cache, const float* __restrict a, const float* __restrict b, float* __restrict c, int n)
     {
-        for (int i = 0; i < cache.read(&n); ++i) {
-			for (int j = 0; j < cache.read(&n); ++j) {
-				cache.touch(c);
+        for (int i = 0; i < n/*cache.read(&n)*/; ++i) {
+			for (int j = 0; j < n/*cache.read(&n)*/; ++j) {
+				//cache.touch(c);
                 cache.write(&c[i * n + j], 0.f);
 				for (int k = 0; k < cache.read(&n); ++k) {
-					cache.touch(a);
-					cache.touch(b);
-					cache.touch(c);
+					//cache.touch(a);
+					//cache.touch(b);
+					//cache.touch(c);
 					cache.write(&c[i * n + j], cache.read(&c[i * n + j]) + cache.read(&a[i * n + k]) * cache.read(&b[k * n + j]));
                 }
             }
@@ -61,10 +61,10 @@ namespace {
 
 int main(int argc, char* argv[])
 {
-	const int n = 129;//atoi(argv[1]);
-    std::cerr << "n = " << n << std::endl;
+	const int n = atoi(argv[1]);
+    printf("n = %d\n", n);
 
-	int inputs[3][3] = { { 32, 1, 4 }, { 8 * 1024, 4, 64 }, { 3145728, 12, 64} };
+	int inputs[][3] = { { 32, 1, 4 }, { 8 * 1024, 4, 64 }, { 3145728, 12, 64 }, { 64, 4, 8 } };
 	int input_to_use = 2;
 
 	const size_t cache_size = inputs[input_to_use][0];
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 		MultSimpleAnalyzed(cache, a, b, c, n);
         const auto endTime = std::clock();
 
-        std::cerr << "timeSimple: " << double(endTime - startTime) / CLOCKS_PER_SEC << '\n';
+		printf("timeSimple: %.5f\n", double(endTime - startTime) / CLOCKS_PER_SEC);
 		
 		if (debug) {
 			PrintMatrix(a, n);
