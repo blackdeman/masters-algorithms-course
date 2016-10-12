@@ -1,13 +1,11 @@
 #include <stdio.h>
-#include <cmath>
+#include <math.h>
 #include <vector>
-#include <algorithm>
-
-#include <string>
-#include <sstream>
-#include <bitset>
+#include <stdlib.h>
 
 typedef unsigned long long TICK_TYPE;
+
+enum CacheReplacementPolicy { LRU, RANDOM };
 
 class CacheLine
 {
@@ -24,12 +22,14 @@ public:
 class CacheSet
 {
 	size_t cache_lines_count;
+	const CacheReplacementPolicy replacement_policy;
 
 	std::vector<CacheLine*> lines;
 
 public:
-	CacheSet(size_t cache_lines_count) :
-		cache_lines_count(cache_lines_count)
+	CacheSet(size_t cache_lines_count, CacheReplacementPolicy replacement_policy) :
+		cache_lines_count(cache_lines_count),
+		replacement_policy(replacement_policy)
 	{
 		lines.resize(cache_lines_count);
 		for (size_t i = 0; i < cache_lines_count; i++)
@@ -38,6 +38,7 @@ public:
 
 	bool touch(size_t tag, TICK_TYPE touch_tick)
 	{
+		size_t empty_cache_line_index = -1;
 		CacheLine* cache_line_with_min_tick = NULL;
 		TICK_TYPE min_tick = touch_tick;
 
@@ -48,10 +49,8 @@ public:
 				cache_line->set_touch_tick(touch_tick);
 				return true;
 			}
-			else if (cache_line->get_tag() == -1) {
-				cache_line->set_touch_tick(touch_tick);
-				cache_line->set_tag(tag);
-				return false;
+			if (cache_line->get_tag() == -1) {
+				empty_cache_line_index = i;
 			}
 			if (min_tick > cache_line->get_touch_tick()) {
 				min_tick = cache_line->get_touch_tick();
@@ -59,9 +58,24 @@ public:
 			}
 		}
 
-		cache_line_with_min_tick->set_touch_tick(touch_tick);
-		cache_line_with_min_tick->set_tag(tag);
-	
+		if (empty_cache_line_index != -1) {
+			lines[empty_cache_line_index]->set_touch_tick(touch_tick);
+			lines[empty_cache_line_index]->set_tag(tag);
+			return false;
+		}
+		
+		switch (replacement_policy) {
+			case LRU:
+				cache_line_with_min_tick->set_touch_tick(touch_tick);
+				cache_line_with_min_tick->set_tag(tag);
+				break;
+			case RANDOM:
+				int random_line_to_replace = rand() % lines.size();
+				lines[random_line_to_replace]->set_touch_tick(touch_tick);
+				lines[random_line_to_replace]->set_tag(tag);
+				break;
+		}
+
 		return false;
 	}
 };
@@ -71,6 +85,7 @@ class Cache
 	const size_t cache_size;
 	const size_t cache_ways_count;
 	const size_t cache_line_size;
+	const CacheReplacementPolicy replacement_policy;
 	const bool debug;
 
 	size_t cache_sets_count;
@@ -87,17 +102,18 @@ class Cache
 	TICK_TYPE cache_hits;
 
 public:
-	Cache(size_t cache_size, size_t cache_ways_count, size_t cache_line_size, bool debug) :
+	Cache(size_t cache_size, size_t cache_ways_count, size_t cache_line_size, CacheReplacementPolicy replacement_policy = LRU, bool debug = false) :
 		cache_size(cache_size),
 		cache_ways_count(cache_ways_count),
 		cache_line_size(cache_line_size),
+		replacement_policy(replacement_policy),
 		debug(debug)
 	{
 		cache_sets_count = cache_size / (cache_ways_count * cache_line_size);
 
 		sets.resize(cache_sets_count);
 		for (size_t i = 0; i < cache_sets_count; ++i)
-			sets[i] = new CacheSet(cache_ways_count);
+			sets[i] = new CacheSet(cache_ways_count, replacement_policy);
 
 		offset_in_block_size = static_cast<size_t>(log2(cache_line_size));
 		index_size = static_cast<size_t>(log2(cache_sets_count));
@@ -109,6 +125,9 @@ public:
 
 		touch_tick = 0;
 		cache_hits = 0;
+
+		// for generator used in CacheSets
+		srand(time(NULL));
 	}
 
 	int read(const int* ptr)

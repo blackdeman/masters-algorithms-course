@@ -7,6 +7,7 @@
 //__declspec(align(16))
 // __restrict
 namespace {
+	/*
 	void MultSimple(const float* __restrict a, const float* __restrict b, float* __restrict c, int n)
 	{
 		for (int i = 0; i < n; ++i) {
@@ -18,7 +19,7 @@ namespace {
 			}
 		}
 	}
-
+	*/
 	void MultSimpleAnalyzed(Cache& cache, const float* __restrict a, const float* __restrict b, float* __restrict c, int n)
     {
         for (int i = 0; i < n/*cache.read(&n)*/; ++i) {
@@ -70,10 +71,8 @@ int main(int argc, char* argv[])
 	const size_t cache_size = inputs[input_to_use][0];
 	const size_t cache_ways_count = inputs[input_to_use][1];
 	const size_t cache_line_size = inputs[input_to_use][2];
-
-	const bool debug = false;
     
-	Cache cache(cache_size, cache_ways_count, cache_line_size, debug);
+	Cache cache(cache_size, cache_ways_count, cache_line_size, LRU);
 	cache.print_cache_info();
 
     float* a = new float[n * n];
@@ -91,11 +90,13 @@ int main(int argc, char* argv[])
 
 		printf("timeSimple: %.5f\n", double(endTime - startTime) / CLOCKS_PER_SEC);
 		
+		/*
 		if (debug) {
 			PrintMatrix(a, n);
 			PrintMatrix(b, n);
 			PrintMatrix(c, n);
 		}
+		*/
 	}
 
 	cache.print_results();
