@@ -15,8 +15,8 @@ public:
 	CacheLine() : tag(-1) {}
 	void set_tag(size_t t) { tag = t; }
 	size_t get_tag() { return tag; }
-	void set_touch_tick(unsigned long long tt) { touch_tick = tt; }
-	unsigned long long get_touch_tick() { return touch_tick; }
+	void set_touch_tick(TICK_TYPE tt) { touch_tick = tt; }
+	TICK_TYPE get_touch_tick() { return touch_tick; }
 };
 
 class CacheSet
@@ -29,7 +29,8 @@ class CacheSet
 public:
 	CacheSet(size_t cache_lines_count, CacheReplacementPolicy replacement_policy) :
 		cache_lines_count(cache_lines_count),
-		replacement_policy(replacement_policy)
+		replacement_policy(replacement_policy)/*,
+		cache_set_touch_tick(0)*/
 	{
 		lines.resize(cache_lines_count);
 		for (size_t i = 0; i < cache_lines_count; i++)
@@ -127,7 +128,7 @@ public:
 		cache_hits = 0;
 
 		// for generator used in CacheSets
-		srand(time(NULL));
+		srand((unsigned int)time(NULL));
 	}
 
 	int read(const int* ptr)
@@ -179,7 +180,7 @@ public:
 		printf("Offset size : %d\n", offset_in_block_size);
 		printf("Index size : %d\n", index_size);
 		printf("Tag size : %d\n", tag_size);
-		//printf("Critical stride : %d\n", cache_size / cache_ways_count);
+		printf("Critical stride : %d\n", cache_size / cache_ways_count);
 	}
 
 	void print_results()

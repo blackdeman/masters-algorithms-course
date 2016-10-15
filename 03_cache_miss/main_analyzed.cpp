@@ -22,14 +22,14 @@ namespace {
 	*/
 	void MultSimpleAnalyzed(Cache& cache, const float* __restrict a, const float* __restrict b, float* __restrict c, int n)
     {
-        for (int i = 0; i < n/*cache.read(&n)*/; ++i) {
-			for (int j = 0; j < n/*cache.read(&n)*/; ++j) {
-				//cache.touch(c);
+        for (int i = 0; i < n; ++i) {
+			for (int j = 0; j < n; ++j) {
+				cache.touch(c);
                 cache.write(&c[i * n + j], 0.f);
-				for (int k = 0; k < cache.read(&n); ++k) {
-					//cache.touch(a);
-					//cache.touch(b);
-					//cache.touch(c);
+				for (int k = 0; k < n; ++k) {
+					cache.touch(a);
+					cache.touch(b);
+					cache.touch(c);
 					cache.write(&c[i * n + j], cache.read(&c[i * n + j]) + cache.read(&a[i * n + k]) * cache.read(&b[k * n + j]));
                 }
             }
@@ -47,32 +47,28 @@ namespace {
             }
         }
     }
-
-	void PrintMatrix(const float* a, int n)
-	{
-		printf("\n");
-		for (int i = 0; i < n; ++i) {
-			for (int j = 0; j < n; ++j) {
-				printf("%.3f ", a[i * n + j]);
-			}
-			printf("\n");
-		}
-	}
 }
 
 int main(int argc, char* argv[])
 {
 	const int n = atoi(argv[1]);
     printf("n = %d\n", n);
-
-	int inputs[][3] = { { 32, 1, 4 }, { 8 * 1024, 4, 64 }, { 3145728, 12, 64 }, { 64, 4, 8 } };
-	int input_to_use = 2;
+	/*
+	int inputs[][3] = { { 32, 1, 4 }, { 64, 4, 8 }, { 8192, 4, 64 }, { 3145728, 12, 64 }, { 4194304, 12, 64 }, { 6291456, 12, 64 } };
+	int input_to_use = 5;
 
 	const size_t cache_size = inputs[input_to_use][0];
 	const size_t cache_ways_count = inputs[input_to_use][1];
 	const size_t cache_line_size = inputs[input_to_use][2];
-    
-	Cache cache(cache_size, cache_ways_count, cache_line_size, LRU);
+    */
+	
+	const size_t cache_size = atoi(argv[2]);
+	const size_t cache_ways_count = atoi(argv[3]);
+	const size_t cache_line_size = atoi(argv[4]);
+
+	const CacheReplacementPolicy policy = static_cast<CacheReplacementPolicy>(atoi(argv[5]));
+	
+	Cache cache(cache_size, cache_ways_count, cache_line_size, policy);
 	cache.print_cache_info();
 
     float* a = new float[n * n];
@@ -89,14 +85,6 @@ int main(int argc, char* argv[])
         const auto endTime = std::clock();
 
 		printf("timeSimple: %.5f\n", double(endTime - startTime) / CLOCKS_PER_SEC);
-		
-		/*
-		if (debug) {
-			PrintMatrix(a, n);
-			PrintMatrix(b, n);
-			PrintMatrix(c, n);
-		}
-		*/
 	}
 
 	cache.print_results();
