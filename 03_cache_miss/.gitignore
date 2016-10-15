@@ -1,0 +1,4 @@
+*.exe
+*.exp
+*.lib
+.ipynb_checkpoints
