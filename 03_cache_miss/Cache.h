@@ -162,7 +162,7 @@ public:
 		size_t index = index_for_ptr(ptr);
 		size_t tag = tag_for_ptr(ptr);
 		if (debug)
-			printf("Touch : %d, %d\n", index, tag);
+			printf("Touch : %zu, %zu\n", index, tag);
 		if (sets[index]->touch(tag, touch_tick)) {
 			cache_hits++;
 			if (debug)
@@ -173,14 +173,14 @@ public:
 	void print_cache_info()
 	{
 		printf("--- Cache info ---\n");
-		printf("Cache size : %d\n", cache_size);
-		printf("Cache ways : %d\n", cache_ways_count);
-		printf("Cache line size : %d\n", cache_line_size);
-		printf("Cache sets count : %d\n", cache_sets_count);
-		printf("Offset size : %d\n", offset_in_block_size);
-		printf("Index size : %d\n", index_size);
-		printf("Tag size : %d\n", tag_size);
-		printf("Critical stride : %d\n", cache_size / cache_ways_count);
+		printf("Cache size : %zu\n", cache_size);
+		printf("Cache ways : %zu\n", cache_ways_count);
+		printf("Cache line size : %zu\n", cache_line_size);
+		printf("Cache sets count : %zu\n", cache_sets_count);
+		printf("Offset size : %zu\n", offset_in_block_size);
+		printf("Index size : %zu\n", index_size);
+		printf("Tag size : %zu\n", tag_size);
+		printf("Critical stride : %zu\n", cache_size / cache_ways_count);
 	}
 
 	void print_results()

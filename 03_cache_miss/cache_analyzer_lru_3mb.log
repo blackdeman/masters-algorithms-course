@@ -1,0 +1,160 @@
+n = 1023
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 173.87936
+--- Cache state ---
+Cache touches : 7496287227
+Cache hits : 7429243066
+Cache misses : 67044161
+Cache miss ratio : 0.00894
+n = 1024
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 137.30205
+--- Cache state ---
+Cache touches : 7518289920
+Cache hits : 6443396044
+Cache misses : 1074893876
+Cache miss ratio : 0.14297
+n = 1025
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 141.85191
+--- Cache state ---
+Cache touches : 7540335625
+Cache hits : 7472897734
+Cache misses : 67437891
+Cache miss ratio : 0.00894
+n = 1040
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 129.97415
+--- Cache state ---
+Cache touches : 7876211200
+Cache hits : 7805770958
+Cache misses : 70440242
+Cache miss ratio : 0.00894
+n = 1041
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 144.99909
+--- Cache state ---
+Cache touches : 7898950809
+Cache hits : 7828307441
+Cache misses : 70643368
+Cache miss ratio : 0.00894
+n = 1050
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 156.71832
+--- Cache state ---
+Cache touches : 8105580000
+Cache hits : 8033089967
+Cache misses : 72490033
+Cache miss ratio : 0.00894
+n = 1100
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 217.35352
+--- Cache state ---
+Cache touches : 9319420000
+Cache hits : 9236080423
+Cache misses : 83339577
+Cache miss ratio : 0.00894
+n = 1279
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 303.65644
+--- Cache state ---
+Cache touches : 14648956155
+Cache hits : 14517985514
+Cache misses : 130970641
+Cache miss ratio : 0.00894
+n = 1280
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 278.07582
+--- Cache state ---
+Cache touches : 14683340800
+Cache hits : 14552062718
+Cache misses : 131278082
+Cache miss ratio : 0.00894
+n = 1281
+--- Cache info ---
+Cache size : 3145728
+Cache ways : 12
+Cache line size : 64
+Cache sets count : 4096
+Offset size : 6
+Index size : 12
+Tag size : 14
+Critical stride : 262144
+timeSimple: 304.28486
+--- Cache state ---
+Cache touches : 14717779209
+Cache hits : 14586193526
+Cache misses : 131585683
+Cache miss ratio : 0.00894
