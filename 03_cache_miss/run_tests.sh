@@ -5,7 +5,7 @@ cacheline=64
 #cachgrind_additional_params="--LL=$cachesize,$cacheways,$cacheline"
 cachgrind_additional_params=""
 
-tests=(1023 1024 1025 1040 1041 1050 1100 1279 1280 1281)
+tests=(1023 1024 1025 1040 1041 1050 1100)
 
 echo "Start : `date`"
 for item in ${tests[*]}
