@@ -3,47 +3,77 @@
 #include <cstdio>
 #include <cstdint>
 #include <algorithm>
+#include <array>
 
-const unsigned int BLOCK = 400;
+const unsigned int BLOCK_SIZE = 100 * 1024;
+const unsigned int ELEM_SIZE = 1;
 const unsigned int SIZE_OFFSET = 2 * sizeof(uint32_t);
 
-void read_block(FILE* input, size_t stream_offset, 
-	uint8_t *buffer,
-	size_t upper_row, size_t buffer_height, size_t left_col, size_t buffer_width,
-	size_t row_count, size_t col_count) {
+class BufferedReader {
+public:
+	BufferedReader(FILE *input, size_t baseOffset, size_t elemsCount) :
+		input(input), baseOffset(baseOffset), elemsCount(elemsCount) {}
 
-	size_t upper_left_offset_read = stream_offset + upper_row * col_count + left_col;
-	if (buffer_width == col_count) {
-		fseek(input, upper_left_offset_read, SEEK_SET);
-		fread(buffer, buffer_width * buffer_height, 1, input);
+	bool hasNext() {
+		return readPos + 1 < elemsCount;
 	}
-	else {
-		for (size_t i = 0; i < buffer_height; ++i){
-			fseek(input, upper_left_offset_read + i * col_count, SEEK_SET);
-			fread(buffer + buffer_width * i, buffer_width, 1, input);
+
+	uint8_t read() {
+		readPos++;
+		if (readPos >= elemsCount)
+			return -1;
+		if (curBufferStart < 0 || readPos >= curBufferStart + BLOCK_SIZE) {
+			curBufferStart = readPos;
+			fseek(input, baseOffset + curBufferStart * ELEM_SIZE, SEEK_SET);
+			fread(buffer.data(), ELEM_SIZE, std::min(BLOCK_SIZE, elemsCount - curBufferStart), input);
 		}
+		return buffer[readPos - curBufferStart];
 	}
-}
 
-void write_block(FILE* output, size_t stream_offset,
-	uint8_t *buffer,
-	size_t upper_row, size_t buffer_height, size_t left_col, size_t buffer_width,
-	size_t row_count, size_t col_count) {
-
-	size_t upper_left_offset_write = stream_offset + upper_row * col_count + left_col;
-	fseek(output, upper_left_offset_write, SEEK_SET);
-	
-	if (buffer_width == col_count) {
-		fseek(output, upper_left_offset_write, SEEK_SET);
-		fwrite(buffer, buffer_width * buffer_height, 1, output);
+	void reset() {
+		readPos = -1;
+		if (curBufferStart != 0)
+			curBufferStart = -1;
 	}
-	else {
-		for (size_t i = 0; i < buffer_height; ++i){
-			fseek(output, upper_left_offset_write + i * col_count, SEEK_SET);
-			fwrite(buffer + buffer_width * i, buffer_width, 1, output);
+
+private:
+	FILE *input;
+	size_t baseOffset;
+	size_t elemsCount;
+	std::array<uint8_t, BLOCK_SIZE> buffer;
+
+	int curBufferStart = -1;
+	int readPos = -1;
+};
+
+class BufferedWriter {
+public:
+	BufferedWriter(FILE *output, size_t baseOffset) :
+		output(output), baseOffset(baseOffset) {}
+
+	void write(uint8_t value) {
+		writePos++;
+		if (writePos >= curBufferStart + BLOCK_SIZE) {
+			//fseek(output, baseOffset + curBufferStart * ELEM_SIZE, SEEK_SET);
+			fwrite(buffer.data(), ELEM_SIZE, writePos - curBufferStart, output);
+			curBufferStart += BLOCK_SIZE;
 		}
+		buffer[writePos - curBufferStart] = value;
 	}
-}
+
+	void flush() {
+		//fseek(output, baseOffset + curBufferStart * ELEM_SIZE, SEEK_SET);
+		fwrite(buffer.data(), ELEM_SIZE, writePos + 1 - curBufferStart, output);
+	}
+
+private:
+	FILE *output;
+	size_t baseOffset;
+	std::array<uint8_t, BLOCK_SIZE> buffer;
+
+	int curBufferStart = 0;
+	int writePos = -1;
+};
 
 void print_matrix_from_file(const char* path) {
 	printf("Print matrix\n");
@@ -51,9 +81,6 @@ void print_matrix_from_file(const char* path) {
 
 	uint32_t rows = 3;
 	uint32_t cols = 1;
-
-	//in.read((char*)&rows, sizeof(rows));
-	//in.read((char*)&cols, sizeof(cols));
 
 	printf("%d %d\n", rows, cols);
 
@@ -70,101 +97,36 @@ void print_matrix_from_file(const char* path) {
 	fclose(in);
 }
 
-void print_buffer(uint8_t *buffer) {
-	for (size_t i = 0; i < BLOCK; ++i) {
-		for (size_t j = 0; j < BLOCK; ++j) {
-			printf("%3d ", buffer[i * BLOCK + j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
-
 int main() {
 	FILE* input = fopen("input.bin", "rb");
 	FILE* output = fopen("output.bin", "wb");
 
-	uint32_t N, M, K = 1;
-	
+	uint32_t N, M;
+
 	fread(&N, sizeof(N), 1, input);
 	fread(&M, sizeof(M), 1, input);
 
-	uint8_t *left_buffer = new uint8_t[BLOCK * BLOCK];
-	uint8_t *right_buffer = new uint8_t[BLOCK * BLOCK];
-	uint8_t *result_buffer = new uint8_t[BLOCK * BLOCK];
+	BufferedReader* aBr = new BufferedReader(input, SIZE_OFFSET, N * M);
+	BufferedReader* bBr = new BufferedReader(input, SIZE_OFFSET + N * M, M);
 
-	size_t left_matrix_offset = SIZE_OFFSET;
-	size_t right_matrix_offset = SIZE_OFFSET + N * M;
-	size_t result_matrix_offset = 0;
+	BufferedWriter* cBw = new BufferedWriter(output, 0);
 
-	// Calculate suitable blocks to process
-	size_t result_row_step = 0;
-	size_t result_col_step = 1;
-	size_t common_step = 0;
-
-	if (N < BLOCK) {
-		if (M < BLOCK) {
-			result_row_step = N;
-			common_step = M;
+	for (size_t i = 0; i < N; ++i) {
+		uint8_t ci = 0;
+		for (size_t j = 0; j < M; ++j) {
+			ci += aBr->read() * bBr->read() % 256;
 		}
-		else {
-			result_row_step = N;
-			common_step = BLOCK * BLOCK / N;
-		}
+		bBr->reset();
+		cBw->write(ci);
 	}
-	else {
-		if (M < BLOCK) {
-			result_row_step = BLOCK * BLOCK / M;
-			common_step = M;
-		}
-		else {
-			result_row_step = BLOCK;
-			common_step = BLOCK;
-		}
-	}
+	cBw->flush();
 
-	for (size_t upper_row_result = 0; upper_row_result < N; upper_row_result += result_row_step) {
-		size_t result_height = std::min(result_row_step, N - upper_row_result);
-		for (size_t left_col_result = 0; left_col_result < K; left_col_result += result_col_step) {
-			size_t result_width = std::min(result_col_step, K - left_col_result);
-			
-			size_t left_matrix_height = result_height;
-			size_t right_matrix_width = result_width;
-
-			for (size_t k = 0; k < M; k += common_step) {
-				size_t left_matrix_width = std::min(common_step, M - k);
-				size_t right_matrix_height = left_matrix_width;
-
-				// read left matrix part
-				read_block(input, left_matrix_offset, left_buffer, upper_row_result, left_matrix_height, k, left_matrix_width, N, M);
-
-				// read right matrix part
-				read_block(input, right_matrix_offset, right_buffer, k, right_matrix_height, left_col_result, right_matrix_width, M, K);
-				
-				// calculus
-				for (size_t ib = 0; ib < result_height; ++ib) {
-					for (size_t jb = 0; jb < result_width; ++jb) {
-						if (k == 0)
-							result_buffer[ib * result_width + jb] = 0;
-						for (size_t kb = 0; kb < left_matrix_width/*right_matrix_row_count*/; ++kb) {
-							result_buffer[ib * result_width + jb] += 
-								left_buffer[ib * left_matrix_width + kb] * right_buffer[kb * right_matrix_width + jb];
-						}
-					}
-				}
-
-			}
-			// write result matrix part
-			write_block(output, result_matrix_offset, result_buffer, upper_row_result, result_height, left_col_result, result_width, N, K);
-		}
-	}
+	delete aBr;
+	delete bBr;
+	delete cBw;
 
 	fclose(input);
 	fclose(output);
-
-	delete[] left_buffer;
-	delete[] right_buffer;
-	delete[] result_buffer;
 
 	return 0;
 }
